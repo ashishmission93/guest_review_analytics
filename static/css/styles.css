@@ -1,1 +1,170 @@
+/* General body styling */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f8f9fa;
+    color: #333;
+}
+
+/* Center container styling */
+.container {
+    max-width: 900px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+/* Page title styling */
+h1 {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #007bff;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+/* Card styling */
+.card {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.card-title {
+    font-weight: bold;
+    color: #495057;
+}
+
+/* Button styling */
+.btn {
+    font-size: 0.9rem;
+    padding: 10px 20px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    border: none;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    border: none;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268;
+}
+
+/* Alert styling for error messages */
+.alert {
+    display: none;
+    margin-top: 10px;
+    padding: 15px;
+    border-radius: 5px;
+    font-size: 0.9rem;
+}
+
+.alert-danger {
+    background-color: #f8d7da;
+    color: #721c24;
+    border-color: #f5c6cb;
+}
+
+/* Form control styling */
+.form-control {
+    border-radius: 6px;
+    padding: 10px;
+    font-size: 0.9rem;
+}
+
+.form-group label {
+    font-weight: bold;
+    font-size: 0.85rem;
+    color: #555;
+}
+
+/* Displaying summary numbers in large font */
+.display-4 {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #007bff;
+    margin-bottom: 0;
+}
+
+/* Card background for summary boxes */
+.bg-light {
+    background-color: #f1f3f5 !important;
+}
+
+/* Review table styling */
+.table {
+    margin-top: 20px;
+}
+
+.table thead th {
+    font-size: 0.85rem;
+    font-weight: bold;
+    color: #495057;
+    border-top: none;
+}
+
+.table tbody tr td {
+    font-size: 0.85rem;
+    vertical-align: middle;
+}
+
+/* Table row hover effect */
+.table-striped tbody tr:hover {
+    background-color: #e9ecef;
+}
+
+/* Sentiment chart canvas styling */
+canvas#sentiment-chart {
+    margin-top: 20px;
+}
+
+/* Highlighted text for the most positive and negative reviews */
+#most-positive, #most-negative {
+    font-size: 0.9rem;
+    color: #333;
+}
+
+/* Responsive padding for cards and sections */
+.card-body {
+    padding: 20px;
+}
+
+/* Flexbox alignment for summary cards */
+.row > .col-md-4 {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Spinner for upload button */
+#upload-form button {
+    display: inline-flex;
+    align-items: center;
+}
+
+#upload-form button.loading::after {
+    content: '';
+    width: 18px;
+    height: 18px;
+    margin-left: 8px;
+    border: 2px solid #fff;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+}
+
+/* Spinner animation */
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
 
