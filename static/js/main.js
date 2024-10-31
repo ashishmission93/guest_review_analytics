@@ -60,7 +60,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Handle form submission
+    // Handle file upload and form submission
     document.getElementById("upload-form").onsubmit = async function (e) {
         e.preventDefault();
         clearAlert();
@@ -95,5 +95,46 @@ document.addEventListener("DOMContentLoaded", () => {
             console.error(error);
         }
     };
-});
 
+    // Filter functionality
+    document.getElementById("filter-form").onsubmit = async function (e) {
+        e.preventDefault();
+        clearAlert();
+
+        const startDate = document.getElementById("start-date").value;
+        const endDate = document.getElementById("end-date").value;
+        const minRating = document.getElementById("min-rating").value;
+        const maxRating = document.getElementById("max-rating").value;
+
+        const params = new URLSearchParams();
+        if (startDate) params.append("start_date", startDate);
+        if (endDate) params.append("end_date", endDate);
+        if (minRating) params.append("min_rating", minRating);
+        if (maxRating) params.append("max_rating", maxRating);
+
+        try {
+            const response = await fetch(`/filter?${params.toString()}`, {
+                method: "GET",
+            });
+
+            if (!response.ok) {
+                const { error } = await response.json();
+                showAlert(error);
+                return;
+            }
+
+            const data = await response.json();
+            avgRatingEl.textContent = data.avg_rating.toFixed(2);
+            mostPositiveEl.textContent = data.most_positive_review;
+            mostNegativeEl.textContent = data.most_negative_review;
+
+            // Update chart and review list
+            updateChart(data.sentiment_counts);
+            displayReviews(data.reviews);
+
+        } catch (error) {
+            showAlert("An error occurred while applying filters.");
+            console.error(error);
+        }
+    };
+});
