@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guest Review Analytics Dashboard</title>
+    <!-- Bootstrap CSS for styling -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <!-- Chart.js for displaying charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container mt-4">
+        <h1 class="text-center">Guest Review Analytics Dashboard</h1>
+
+        <!-- Alert Section for Error Messages -->
+        <div id="alert-section" class="alert alert-danger d-none" role="alert"></div>
+
+        <!-- File Upload Section -->
+        <div class="card my-4">
+            <div class="card-body">
+                <h5 class="card-title">Upload Guest Reviews CSV</h5>
+                <form id="upload-form">
+                    <div class="form-group">
+                        <input type="file" name="file" id="file-input" accept=".csv" class="form-control">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Upload and Analyze</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Filters Section -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Filter Reviews</h5>
+                <form id="filter-form">
+                    <div class="form-row">
+                        <div class="col-md-4 mb-3">
+                            <label for="start-date">Start Date</label>
+                            <input type="date" id="start-date" name="start_date" class="form-control">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="end-date">End Date</label>
+                            <input type="date" id="end-date" name="end_date" class="form-control">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="rating-range">Rating Range</label>
+                            <input type="text" id="min-rating" name="min_rating" placeholder="Min Rating" class="form-control mb-2">
+                            <input type="text" id="max-rating" name="max_rating" placeholder="Max Rating" class="form-control">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-secondary">Apply Filters</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Summary Section -->
+        <div class="card my-4">
+            <div class="card-body">
+                <h5 class="card-title">Dashboard Summary</h5>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card bg-light mb-3">
+                            <div class="card-body">
+                                <h6 class="card-title">Average Rating</h6>
+                                <p id="avg-rating" class="card-text display-4">-</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-light mb-3">
+                            <div class="card-body">
+                                <h6 class="card-title">Most Positive Review</h6>
+                                <p id="most-positive" class="card-text">-</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-light mb-3">
+                            <div class="card-body">
+                                <h6 class="card-title">Most Negative Review</h6>
+                                <p id="most-negative" class="card-text">-</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <canvas id="sentiment-chart" width="400" height="200"></canvas>
+            </div>
+        </div>
+
+        <!-- Detailed Review List -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Detailed Review List</h5>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Review</th>
+                            <th>Rating</th>
+                            <th>Sentiment</th>
+                            <th>Advanced Sentiment</th>
+                        </tr>
+                    </thead>
+                    <tbody id="review-list">
+                        <!-- Review data will be appended here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom JavaScript for handling upload, filters, and interactivity -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
