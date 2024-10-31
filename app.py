@@ -1,6 +1,5 @@
 import os
 import pandas as pd
-import openai
 from flask import Flask, render_template, request, jsonify
 from dotenv import load_dotenv
 from textblob import TextBlob
@@ -13,10 +12,7 @@ load_dotenv()
 app = Flask(__name__)
 app.config["UPLOAD_FOLDER"] = "uploads"
 
-# Set OpenAI API key
-openai.api_key = os.getenv("OPENAI_API_KEY")
-
-# Sentiment analysis with TextBlob
+# Sentiment analysis function using TextBlob
 def analyze_sentiment(text):
     analysis = TextBlob(text)
     polarity = analysis.sentiment.polarity
@@ -27,28 +23,14 @@ def analyze_sentiment(text):
     else:
         return "neutral", polarity
 
-# Enhanced sentiment analysis using OpenAI
-def advanced_sentiment_analysis(text):
-    try:
-        response = openai.Completion.create(
-            engine="text-davinci-003",
-            prompt=f"Classify the sentiment and main emotion in this review: '{text}'",
-            max_tokens=50
-        )
-        return response.choices[0].text.strip()
-    except Exception as e:
-        print(f"OpenAI error: {e}")
-        return "Unable to classify sentiment with OpenAI."
-
-# Home route - Dashboard
+# Home route - Renders the main dashboard
 @app.route("/")
 def home():
     return render_template("dashboard.html")
 
-# Route to handle CSV upload, filtering, and analysis
+# Route to handle CSV file upload and analyze reviews
 @app.route("/upload", methods=["POST"])
 def upload():
-    # Check for file upload
     if "file" not in request.files:
         return jsonify({"error": "No file uploaded"}), 400
     
@@ -57,62 +39,95 @@ def upload():
         return jsonify({"error": "No file selected"}), 400
     
     if file:
-        # Save the uploaded file
-        filepath = os.path.join(app.config["UPLOAD_FOLDER"], file.filename)
-        file.save(filepath)
-
-        # Read CSV and perform sentiment analysis
         try:
-            df = pd.read_csv(filepath)
-            if "review" not in df.columns or "rating" not in df.columns or "date" not in df.columns:
+            # Load the CSV file into a DataFrame
+            df = pd.read_csv(file)
+            if "date" not in df.columns or "review" not in df.columns or "rating" not in df.columns:
                 return jsonify({"error": "CSV file must contain 'date', 'review', and 'rating' columns"}), 400
             
-            # Convert date column to datetime format for filtering
+            # Convert date column to datetime format and drop rows with invalid dates
             df["date"] = pd.to_datetime(df["date"], errors='coerce')
             df = df.dropna(subset=["date"])
 
-            # Perform TextBlob-based sentiment analysis
+            # Perform sentiment analysis on each review
             df[["sentiment", "polarity"]] = df["review"].apply(lambda text: pd.Series(analyze_sentiment(text)))
             
-            # Filter data if date range is provided
-            start_date = request.form.get("start_date")
-            end_date = request.form.get("end_date")
-            if start_date and end_date:
-                start_date = datetime.strptime(start_date, "%Y-%m-%d")
-                end_date = datetime.strptime(end_date, "%Y-%m-%d")
-                df = df[(df["date"] >= start_date) & (df["date"] <= end_date)]
-
-            # Filter data by rating if provided
-            min_rating = int(request.form.get("min_rating", 1))
-            max_rating = int(request.form.get("max_rating", 5))
-            df = df[(df["rating"] >= min_rating) & (df["rating"] <= max_rating)]
-
-            # Perform advanced sentiment analysis using OpenAI
-            df["advanced_sentiment"] = df["review"].apply(advanced_sentiment_analysis)
-
-            # Calculate summary statistics
+            # Calculate average rating, most positive, and most negative reviews
             avg_rating = df["rating"].mean()
-            sentiment_counts = df["sentiment"].value_counts().to_dict()
-
-            # Highlight most positive and negative reviews
             most_positive_review = df.loc[df["polarity"].idxmax()]["review"]
             most_negative_review = df.loc[df["polarity"].idxmin()]["review"]
+            
+            # Count sentiments
+            sentiment_counts = df["sentiment"].value_counts().to_dict()
 
-            # Prepare data for response
-            data = {
+            # Prepare review data for display
+            reviews = df[["date", "review", "rating", "sentiment"]].to_dict(orient="records")
+
+            # Send analysis results as JSON response
+            return jsonify({
                 "avg_rating": avg_rating,
-                "sentiment_counts": sentiment_counts,
                 "most_positive_review": most_positive_review,
                 "most_negative_review": most_negative_review,
-                "reviews": df[["date", "review", "rating", "sentiment", "advanced_sentiment"]].to_dict(orient="records")
-            }
-            return jsonify(data)
-        
+                "sentiment_counts": sentiment_counts,
+                "reviews": reviews
+            })
+
         except Exception as e:
             print(f"Error processing file: {e}")
             return jsonify({"error": "An error occurred while processing the file"}), 500
 
     return jsonify({"error": "File upload failed"}), 400
+
+# Route to handle review filtering based on date range and rating range
+@app.route("/filter", methods=["GET"])
+def filter_reviews():
+    try:
+        # Load the uploaded file or data source here
+        # Assuming the file was uploaded and stored in the previous route for simplicity
+        filepath = os.path.join(app.config["UPLOAD_FOLDER"], "uploaded_reviews.csv")
+        df = pd.read_csv(filepath)
+
+        # Parse and filter by date range
+        start_date = request.args.get("start_date")
+        end_date = request.args.get("end_date")
+        if start_date and end_date:
+            start_date = datetime.strptime(start_date, "%Y-%m-%d")
+            end_date = datetime.strptime(end_date, "%Y-%m-%d")
+            df["date"] = pd.to_datetime(df["date"], errors='coerce')
+            df = df[(df["date"] >= start_date) & (df["date"] <= end_date)]
+
+        # Filter by rating range
+        min_rating = request.args.get("min_rating", type=int)
+        max_rating = request.args.get("max_rating", type=int)
+        if min_rating is not None and max_rating is not None:
+            df = df[(df["rating"] >= min_rating) & (df["rating"] <= max_rating)]
+
+        # Perform sentiment analysis on filtered data
+        df[["sentiment", "polarity"]] = df["review"].apply(lambda text: pd.Series(analyze_sentiment(text)))
+
+        # Calculate average rating, most positive, and most negative reviews for filtered data
+        avg_rating = df["rating"].mean()
+        most_positive_review = df.loc[df["polarity"].idxmax()]["review"]
+        most_negative_review = df.loc[df["polarity"].idxmin()]["review"]
+        
+        # Count sentiments
+        sentiment_counts = df["sentiment"].value_counts().to_dict()
+
+        # Prepare review data for display
+        reviews = df[["date", "review", "rating", "sentiment"]].to_dict(orient="records")
+
+        # Send filtered analysis results as JSON response
+        return jsonify({
+            "avg_rating": avg_rating,
+            "most_positive_review": most_positive_review,
+            "most_negative_review": most_negative_review,
+            "sentiment_counts": sentiment_counts,
+            "reviews": reviews
+        })
+
+    except Exception as e:
+        print(f"Error filtering data: {e}")
+        return jsonify({"error": "An error occurred while filtering the data"}), 500
 
 if __name__ == "__main__":
     app.run(debug=True)
