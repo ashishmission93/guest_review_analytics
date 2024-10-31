@@ -46,8 +46,8 @@
                         </div>
                         <div class="col-md-4 mb-3">
                             <label for="rating-range">Rating Range</label>
-                            <input type="text" id="min-rating" name="min_rating" placeholder="Min Rating" class="form-control mb-2">
-                            <input type="text" id="max-rating" name="max_rating" placeholder="Max Rating" class="form-control">
+                            <input type="number" id="min-rating" name="min_rating" placeholder="Min Rating" class="form-control mb-2">
+                            <input type="number" id="max-rating" name="max_rating" placeholder="Max Rating" class="form-control">
                         </div>
                     </div>
                     <button type="submit" class="btn btn-secondary">Apply Filters</button>
@@ -100,7 +100,6 @@
                             <th>Review</th>
                             <th>Rating</th>
                             <th>Sentiment</th>
-                            <th>Advanced Sentiment</th>
                         </tr>
                     </thead>
                     <tbody id="review-list">
