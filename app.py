@@ -12,6 +12,10 @@ load_dotenv()
 app = Flask(__name__)
 app.config["UPLOAD_FOLDER"] = "uploads"
 
+# Ensure the uploads directory exists
+if not os.path.exists(app.config["UPLOAD_FOLDER"]):
+    os.makedirs(app.config["UPLOAD_FOLDER"])
+
 # Sentiment analysis function using TextBlob
 def analyze_sentiment(text):
     analysis = TextBlob(text)
@@ -40,8 +44,12 @@ def upload():
     
     if file:
         try:
+            # Save the uploaded file
+            filepath = os.path.join(app.config["UPLOAD_FOLDER"], "uploaded_reviews.csv")
+            file.save(filepath)
+            
             # Load the CSV file into a DataFrame
-            df = pd.read_csv(file)
+            df = pd.read_csv(filepath)
             if "date" not in df.columns or "review" not in df.columns or "rating" not in df.columns:
                 return jsonify({"error": "CSV file must contain 'date', 'review', and 'rating' columns"}), 400
             
@@ -82,9 +90,11 @@ def upload():
 @app.route("/filter", methods=["GET"])
 def filter_reviews():
     try:
-        # Load the uploaded file or data source here
-        # Assuming the file was uploaded and stored in the previous route for simplicity
+        # Load the uploaded file
         filepath = os.path.join(app.config["UPLOAD_FOLDER"], "uploaded_reviews.csv")
+        if not os.path.exists(filepath):
+            return jsonify({"error": "No uploaded file found. Please upload a reviews CSV file first."}), 400
+        
         df = pd.read_csv(filepath)
 
         # Parse and filter by date range
@@ -106,9 +116,9 @@ def filter_reviews():
         df[["sentiment", "polarity"]] = df["review"].apply(lambda text: pd.Series(analyze_sentiment(text)))
 
         # Calculate average rating, most positive, and most negative reviews for filtered data
-        avg_rating = df["rating"].mean()
-        most_positive_review = df.loc[df["polarity"].idxmax()]["review"]
-        most_negative_review = df.loc[df["polarity"].idxmin()]["review"]
+        avg_rating = df["rating"].mean() if not df.empty else None
+        most_positive_review = df.loc[df["polarity"].idxmax()]["review"] if not df.empty else "N/A"
+        most_negative_review = df.loc[df["polarity"].idxmin()]["review"] if not df.empty else "N/A"
         
         # Count sentiments
         sentiment_counts = df["sentiment"].value_counts().to_dict()
